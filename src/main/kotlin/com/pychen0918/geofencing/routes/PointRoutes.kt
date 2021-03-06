@@ -1,5 +1,6 @@
 package com.pychen0918.geofencing.routes
 
+import com.pychen0918.geofencing.MyHttpClient
 import com.pychen0918.geofencing.models.ErrorMessage
 import com.pychen0918.geofencing.models.Point
 import com.pychen0918.geofencing.models.pointsStorage
@@ -8,14 +9,11 @@ import io.ktor.application.call
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.post
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
-import io.ktor.response.respondText
 import io.ktor.routing.*
-import kotlinx.coroutines.withTimeout
-import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
 
 fun Application.registerPointRoutes(){
@@ -52,24 +50,26 @@ fun Route.pointRouting(){
         }
         post {
             val point = call.receive<Point>()
-            // TODO: add to tile38
-            //pointsStorage.add(point)
-            HttpClient(CIO).use {
-                val result = it.post<String>("http://127.0.0.1:9851"){
-                    body = "SET ${point.collection} ${point.id} POINT ${point.lat} ${point.lng}"
-                }
-                println(result)
-            }
+            val result = MyHttpClient.post("http://127.0.0.1:9851", "SET ${point.collection} ${point.id} POINT ${point.lat} ${point.lng}")
+            println(result)
 
-            val result = buildJsonObject {
-                put("id", point.id)
-                put("collection", point.collection)
+            val json = Json.parseToJsonElement(result)
+            val ok = json.jsonObject["ok"]!!.jsonPrimitive.boolean
+            if(ok){
+                call.respond(
+                    HttpStatusCode.Created,
+                    buildJsonObject {
+                        put("id", point.id)
+                        put("collection", point.collection)
+                    }
+                )
             }
-
-            call.respond (
-                HttpStatusCode.Created,
-                result
-            )
+            else {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    ErrorMessage(4, json.jsonObject["err"]!!.jsonPrimitive.content)
+                )
+            }
         }
     }
 }
