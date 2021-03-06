@@ -5,12 +5,16 @@ import com.pychen0918.geofencing.models.Point
 import com.pychen0918.geofencing.models.pointsStorage
 import io.ktor.application.Application
 import io.ktor.application.call
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.request.post
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.*
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
@@ -49,7 +53,13 @@ fun Route.pointRouting(){
         post {
             val point = call.receive<Point>()
             // TODO: add to tile38
-            pointsStorage.add(point)
+            //pointsStorage.add(point)
+            HttpClient(CIO).use {
+                val result = it.post<String>("http://127.0.0.1:9851"){
+                    body = "SET ${point.collection} ${point.id} POINT ${point.lat} ${point.lng}"
+                }
+                println(result)
+            }
 
             val result = buildJsonObject {
                 put("id", point.id)

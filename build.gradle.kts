@@ -18,6 +18,8 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test-junit"))
+    implementation("io.ktor:ktor-client-core:1.4.0")
+    implementation("io.ktor:ktor-client-cio:1.4.0")
     implementation("io.ktor:ktor-server-netty:1.4.0")
     implementation("io.ktor:ktor-html-builder:1.4.0")
     implementation("io.ktor:ktor-serialization:1.4.0")
