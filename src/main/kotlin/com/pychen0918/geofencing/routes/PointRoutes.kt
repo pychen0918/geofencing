@@ -49,8 +49,7 @@ fun Route.pointRouting(){
 
             // Send to tile38
             val result = Tile38Client.setPoint(point.collection, point.id, point.lat, point.lng)
-            val json = Json.parseToJsonElement(result)
-            val ok = json.jsonObject["ok"]!!.jsonPrimitive.boolean
+            val ok = result["ok"]!!.jsonPrimitive.boolean
             if(ok){
                 // Tile38 report OK
                 call.respond(
@@ -65,7 +64,7 @@ fun Route.pointRouting(){
                 // Something went wrong
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    ErrorMessage(4, json.jsonObject["err"]!!.jsonPrimitive.content)
+                    ErrorMessage(4, result["err"]!!.jsonPrimitive.content)
                 )
             }
         }
