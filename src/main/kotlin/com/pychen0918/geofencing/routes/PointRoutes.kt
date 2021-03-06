@@ -25,24 +25,65 @@ fun Route.pointRouting(){
                 HttpStatusCode.BadRequest,
                 ErrorMessage(1, "Collection ID is required")
             )
-            // TODO: lookup the collection in tile38 and handle error
-            pointsStorage.find { it.collection == collection } ?: return@get call.respond(
-                HttpStatusCode.NotFound,
-                ErrorMessage(2, "The collection ID does not exist")
-            )
-
             val id: String? = call.parameters["id"]
+            if (id != null && id.isNotEmpty()) {
+                val result = Tile38Client.getPoint(collection, id)
+                //{"ok":true,"point":{"lat":123.456,"lon":123.444},"elapsed":"133.1µs"}
 
-            // TODO: find the point in tile38
-            val result = pointsStorage.find { it.collection == collection && it.id == id} ?: return@get call.respond(
-                HttpStatusCode.NotFound,
-                ErrorMessage(3, "Point not found")
-            )
-
-            call.respond(
-                HttpStatusCode.OK,
-                result
-            )
+                val ok = result["ok"]!!.jsonPrimitive.boolean
+                if(ok){
+                    call.respond(
+                        HttpStatusCode.OK,
+                        buildJsonObject {
+                            put("collection", collection)
+                            put("count", 1)
+                            putJsonArray("points"){
+                                addJsonObject {
+                                    val point = result["point"]!!.jsonObject
+                                    put("id", id)
+                                    put("lat", point["lat"]!!.jsonPrimitive.content)
+                                    put("lng", point["lon"]!!.jsonPrimitive.content)
+                                }
+                            }
+                        }
+                    )
+                }
+                else{
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        ErrorMessage(4, result["err"]!!.jsonPrimitive.content)
+                    )
+                }
+            }
+            else {
+                // {"ok":true,"points":[{"id":"cat","point":{"lat":123.456,"lon":123.444}},{"id":"dog1","point":{"lat":123.456,"lon":123.444}}],"count":2,"cursor":0,"elapsed":"4.2687ms"}
+                val result = Tile38Client.scanPoints(collection)
+                val ok = result["ok"]!!.jsonPrimitive.boolean
+                if(ok){
+                    call.respond(
+                        HttpStatusCode.OK,
+                        buildJsonObject {
+                            put("collection", collection)
+                            put("count", result["count"]!!.jsonPrimitive.content)
+                            putJsonArray("points"){
+                                for(point in result["points"]!!.jsonArray) {
+                                    addJsonObject {
+                                        put("id", point.jsonObject["id"]!!.jsonPrimitive.content)
+                                        put("lat", point.jsonObject["point"]!!.jsonObject["lat"]!!.jsonPrimitive.content)
+                                        put("lng", point.jsonObject["point"]!!.jsonObject["lon"]!!.jsonPrimitive.content)
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
+                else{
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        ErrorMessage(4, result["err"]!!.jsonPrimitive.content)
+                    )
+                }
+            }
         }
         post {
             val point = call.receive<Point>()
