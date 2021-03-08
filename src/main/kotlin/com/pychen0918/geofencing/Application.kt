@@ -1,6 +1,7 @@
 package com.pychen0918.geofencing
 
 import com.pychen0918.geofencing.routes.registerCustomerRoutes
+import com.pychen0918.geofencing.routes.registerNearbyRoutes
 import com.pychen0918.geofencing.routes.registerPointRoutes
 import io.ktor.application.Application
 import io.ktor.application.install
@@ -15,4 +16,5 @@ fun Application.module() {
     }
     registerCustomerRoutes()
     registerPointRoutes()
+    registerNearbyRoutes()
 }

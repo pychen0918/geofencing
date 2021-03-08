@@ -1,6 +1,7 @@
 package com.pychen0918.geofencing.tile38
 
 import io.ktor.client.HttpClient
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -20,6 +21,12 @@ object Tile38Client : Tile38CommandInterface {
         }
     }
 
+    private suspend fun get(url: String, data: String): String {
+        return client.get<String>(url){
+            body = data
+        }
+    }
+
     override suspend fun getPoint(key: String, id: String): JsonObject {
         return post(url, "GET $key $id POINT").toJsonObject()
     }
@@ -30,5 +37,9 @@ object Tile38Client : Tile38CommandInterface {
 
     override suspend fun scanPoints(key: String, limit: Int): JsonObject {
         return post(url, "SCAN $key LIMIT $limit POINTS").toJsonObject()
+    }
+
+    override suspend fun getNearby(key: String, lat: Double, lng: Double, radius: Int, limit: Int): JsonObject {
+        return get(url, "NEARBY $key LIMIT $limit POINT $lat $lng $radius").toJsonObject()
     }
 }
