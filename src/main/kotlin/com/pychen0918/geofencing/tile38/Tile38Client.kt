@@ -42,4 +42,16 @@ object Tile38Client : Tile38CommandInterface {
     override suspend fun getNearby(key: String, lat: Double, lng: Double, radius: Int, limit: Int): JsonObject {
         return get(url, "NEARBY $key LIMIT $limit POINT $lat $lng $radius").toJsonObject()
     }
+
+    override suspend fun nearbyFence(
+        key: String,
+        id: String,
+        lat: Double,
+        lng: Double,
+        radius: Int,
+        hook: String,
+        events: List<String>
+    ): JsonObject {
+        return post(url, "SETHOOK $id $hook NEARBY $key FENCE DETECT ${events.joinToString(separator = ",")} POINT $lat $lng $radius").toJsonObject()
+    }
 }
