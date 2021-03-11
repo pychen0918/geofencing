@@ -52,6 +52,7 @@ object Tile38Client : Tile38CommandInterface {
         hook: String,
         events: List<String>
     ): JsonObject {
-        return post(url, "SETHOOK $id $hook NEARBY $key FENCE DETECT ${events.joinToString(separator = ",")} POINT $lat $lng $radius").toJsonObject()
+        // We trigger the hook back to ourself, and forward it to user_hook later
+        return post(url, "SETHOOK $id http://127.0.0.1:8080/hooks META hook $hook NEARBY $key FENCE DETECT ${events.joinToString(separator = ",")} POINT $lat $lng $radius").toJsonObject()
     }
 }

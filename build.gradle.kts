@@ -24,7 +24,7 @@ dependencies {
     implementation("io.ktor:ktor-html-builder:1.4.0")
     implementation("io.ktor:ktor-serialization:1.4.0")
     implementation("ch.qos.logback:logback-classic:1.2.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
 }
 
 tasks.test {
